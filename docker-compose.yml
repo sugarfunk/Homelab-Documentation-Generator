@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  homelab-docs:
+    build: .
+    container_name: homelab-docs
+    image: homelab-docs:latest
+
+    # Mount configuration and data
+    volumes:
+      # Configuration
+      - ./config.yaml:/app/config.yaml:ro
+
+      # SSH keys for server access
+      - ~/.ssh:/root/.ssh:ro
+
+      # Data persistence
+      - ./data:/app/data
+
+      # Generated documentation output
+      - ./output:/app/output
+
+      # Logs
+      - ./logs:/app/logs
+
+      # Docker socket for local Docker scanning (optional)
+      # Uncomment if running on the same host you want to scan
+      # - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    # Environment variables
+    environment:
+      # LLM API Keys (set these in .env file or here)
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+
+      # Tailscale API
+      - TAILSCALE_API_KEY=${TAILSCALE_API_KEY:-}
+
+      # Web interface password
+      - WEB_PASSWORD=${WEB_PASSWORD:-admin}
+
+      # Encryption key for documentation
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-}
+
+    # Network mode for Tailscale access
+    # If you want to access Tailscale network, you may need:
+    # network_mode: "host"
+    # Or join the container to Tailscale network separately
+
+    # Ports
+    ports:
+      - "8000:8000"
+
+    # Restart policy
+    restart: unless-stopped
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+    # Command override for running specific operations
+    # Uncomment one of these or run commands manually:
+
+    # Run a scan
+    # command: python -m src.cli scan
+
+    # Generate documentation
+    # command: python -m src.cli generate
+
+    # Start web server
+    # command: python -m src.cli serve --host 0.0.0.0 --port 8000
+
+  # Optional: Ollama for local LLM (privacy mode)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: homelab-docs-ollama
+    profiles:
+      - with-ollama
+    volumes:
+      - ollama-data:/root/.ollama
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+
+volumes:
+  ollama-data:
+    driver: local
+
+# To use with Ollama:
+# docker-compose --profile with-ollama up -d
