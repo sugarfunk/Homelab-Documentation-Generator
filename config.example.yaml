@@ -1,0 +1,301 @@
+# Homelab Documentation Generator Configuration
+
+# Infrastructure Configuration
+infrastructure:
+  # List of servers to scan
+  servers:
+    - name: workhorse1
+      hostname: workhorse1
+      tailscale_ip: 100.x.x.x
+      local_ip: 192.168.x.x
+      ssh:
+        user: username
+        key_path: ~/.ssh/id_rsa
+        port: 22
+      role: primary_server
+      criticality: critical  # critical, important, nice-to-have
+
+    - name: workhorse2
+      hostname: workhorse2
+      tailscale_ip: 100.x.x.x
+      local_ip: 192.168.x.x
+      ssh:
+        user: username
+        key_path: ~/.ssh/id_rsa
+        port: 22
+      role: secondary_server
+      criticality: important
+
+    - name: minideb
+      hostname: minideb
+      tailscale_ip: 100.x.x.x
+      local_ip: 192.168.x.x
+      ssh:
+        user: username
+        key_path: ~/.ssh/id_rsa
+        port: 22
+      role: utility_server
+      criticality: important
+
+    - name: mediabeelink
+      hostname: mediabeelink
+      tailscale_ip: 100.x.x.x
+      local_ip: 192.168.x.x
+      ssh:
+        user: username
+        key_path: ~/.ssh/id_rsa
+        port: 22
+      role: media_server
+      criticality: nice-to-have
+
+    - name: hetzner-vps
+      hostname: your-vps.hetzner.cloud
+      public_ip: x.x.x.x
+      tailscale_ip: 100.x.x.x
+      ssh:
+        user: username
+        key_path: ~/.ssh/id_rsa
+        port: 22
+      role: public_facing
+      criticality: critical
+
+  # Tailscale configuration
+  tailscale:
+    enabled: true
+    api_key: ${TAILSCALE_API_KEY}  # Use environment variable
+    tailnet: your-tailnet.ts.net
+
+  # Docker compose file locations
+  docker_compose_paths:
+    - /opt/docker
+    - /home/username/docker
+    - ~/services
+
+  # Known reverse proxies
+  reverse_proxies:
+    - name: Pangolin
+      server: workhorse1
+      type: traefik  # or nginx, caddy
+      config_path: /opt/docker/traefik
+
+    - name: Gerbil
+      server: workhorse2
+      type: traefik
+      config_path: /opt/docker/traefik
+
+# LLM Configuration
+llm:
+  # Default provider for AI explanations
+  default_provider: claude  # claude, openai, ollama, gemini
+
+  # Privacy mode - use local Ollama for sensitive data
+  privacy_mode: true
+  privacy_provider: ollama
+
+  # Provider configurations
+  providers:
+    claude:
+      api_key: ${ANTHROPIC_API_KEY}
+      model: claude-3-5-sonnet-20241022
+      max_tokens: 4096
+
+    openai:
+      api_key: ${OPENAI_API_KEY}
+      model: gpt-4-turbo-preview
+      max_tokens: 4096
+
+    ollama:
+      base_url: http://localhost:11434
+      model: llama2
+
+    gemini:
+      api_key: ${GOOGLE_API_KEY}
+      model: gemini-pro
+
+  # What to use LLM for
+  features:
+    service_explanations: true
+    troubleshooting_guides: true
+    procedure_generation: true
+    non_technical_mode: true
+    glossary_generation: true
+
+# Scanning Configuration
+scanning:
+  # Scan schedule (cron format)
+  schedule: "0 2 * * *"  # 2 AM daily
+
+  # What to scan
+  enabled_scanners:
+    - tailscale
+    - docker
+    - server_info
+    - network
+    - compose_files
+
+  # Timeouts (seconds)
+  timeouts:
+    ssh_connection: 30
+    docker_api: 60
+    command_execution: 120
+
+  # Retry configuration
+  retries:
+    max_attempts: 3
+    backoff_multiplier: 2
+
+# Documentation Generation
+documentation:
+  # Output directory
+  output_dir: ./output
+
+  # Formats to generate
+  formats:
+    - html
+    - pdf
+    - markdown
+
+  # Include diagrams
+  diagrams:
+    enabled: true
+    formats:
+      - svg
+      - png
+    types:
+      - infrastructure_topology
+      - service_dependencies
+      - network_diagram
+      - data_flow
+
+  # Themes
+  theme: default  # default, dark, minimal
+
+  # Sections to include
+  sections:
+    server_docs: true
+    service_docs: true
+    network_docs: true
+    procedures: true
+    emergency_guide: true
+    glossary: true
+
+  # User modes
+  modes:
+    technical: true
+    non_technical: true
+    emergency: true
+
+# Security Configuration
+security:
+  # Secrets to sanitize (regex patterns)
+  sanitize_patterns:
+    - "password"
+    - "token"
+    - "secret"
+    - "key"
+    - "api_key"
+    - "credential"
+
+  # Services to exclude from documentation
+  exclude_services:
+    # - service-name-to-exclude
+
+  # Web interface authentication
+  web_auth:
+    enabled: false
+    username: admin
+    password: ${WEB_PASSWORD}
+
+  # Encrypt generated documentation
+  encryption:
+    enabled: false
+    key: ${ENCRYPTION_KEY}
+
+# Change Detection
+change_detection:
+  enabled: true
+
+  # What changes to track
+  track:
+    - servers_added_removed
+    - services_added_removed
+    - configuration_changes
+    - version_updates
+
+  # Keep history for (days)
+  retention_days: 90
+
+# Notifications
+notifications:
+  # NTFY configuration
+  ntfy:
+    enabled: false
+    server: https://ntfy.sh
+    topic: homelab-docs
+    priority: default
+
+  # When to notify
+  triggers:
+    - scan_complete
+    - changes_detected
+    - errors
+    - weekly_summary
+
+# Emergency Information
+emergency:
+  # Password manager info
+  password_manager:
+    type: bitwarden  # or 1password, keepass, etc.
+    url: https://vault.bitwarden.com
+    emergency_access: "Contact John Doe: john@example.com"
+
+  # Backup locations
+  backups:
+    - location: Synology NAS
+      path: /volume1/backups
+      type: automated
+
+    - location: Backblaze B2
+      path: homelab-backups
+      type: cloud
+
+  # Emergency contacts
+  contacts:
+    - name: Your Name
+      role: Primary Admin
+      phone: "+1-xxx-xxx-xxxx"
+      email: you@example.com
+
+    - name: Tech-Savvy Friend
+      role: Emergency Backup
+      phone: "+1-xxx-xxx-xxxx"
+      email: friend@example.com
+
+  # Critical services
+  critical_services:
+    - Home Assistant
+    - Reverse Proxy
+    - DNS
+
+  # Business information (if applicable)
+  business:
+    name: LongBark
+    type: WordPress Hosting
+    client_count: 60+
+    contact_list_location: /path/to/client/contacts
+
+# Web Interface
+web:
+  host: 0.0.0.0
+  port: 8000
+  reload: false
+
+# Database
+database:
+  url: sqlite:///./data/homelab_docs.db
+
+# Logging
+logging:
+  level: INFO  # DEBUG, INFO, WARNING, ERROR
+  file: ./data/homelab_docs.log
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
