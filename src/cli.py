@@ -140,20 +140,125 @@ def scan(ctx, output):
 @cli.command()
 @click.option('--scan-file', '-s', help='Use existing scan results')
 @click.option('--output-dir', '-o', help='Output directory')
+@click.option('--enable-ai/--no-ai', default=True, help='Enable AI-powered features')
+@click.option('--formats', '-f', multiple=True, help='Output formats (html, pdf, markdown)')
 @click.pass_context
-def generate(ctx, scan_file, output_dir):
+def generate(ctx, scan_file, output_dir, enable_ai, formats):
     """Generate documentation from scan results."""
     config = ctx.obj['config']
+    logger = ctx.obj['logger']
 
     console.print("\n[bold cyan]📚 Documentation Generator[/bold cyan]\n")
-    console.print("[yellow]Full documentation generation coming soon![/yellow]")
-    console.print("\nThis will generate:")
-    console.print("  • HTML documentation site")
-    console.print("  • PDF export")
-    console.print("  • Markdown files")
-    console.print("  • Infrastructure diagrams")
-    console.print("  • Emergency guide")
-    console.print("  • Quick reference cards")
+
+    # Import generators here to avoid circular imports
+    from .scanner_orchestrator import ScannerOrchestrator
+    from .generators.doc_generator import DocumentationGenerator
+    from .generators.diagram_generator import DiagramGenerator
+    from .generators.output_formats import OutputFormatOrchestrator
+
+    async def run_generation():
+        # Get or load snapshot
+        if scan_file:
+            console.print(f"[cyan]Loading scan results from:[/cyan] {scan_file}")
+            with open(scan_file, 'r') as f:
+                from .models.infrastructure import InfrastructureSnapshot
+                snapshot_data = json.load(f)
+                snapshot = InfrastructureSnapshot(**snapshot_data)
+        else:
+            console.print("[cyan]No scan file provided, running new scan...[/cyan]")
+            orchestrator = ScannerOrchestrator(config)
+
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                console=console
+            ) as progress:
+                task = progress.add_task("[cyan]Scanning infrastructure...", total=None)
+                snapshot = await orchestrator.scan_all()
+                progress.update(task, description="[green]Scan complete!")
+
+        # Generate documentation
+        doc_gen = DocumentationGenerator(config)
+
+        console.print("\n[cyan]Generating comprehensive documentation...[/cyan]")
+
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console
+        ) as progress:
+            task = progress.add_task("[cyan]Creating documentation bundle...", total=None)
+
+            bundle = await doc_gen.generate_full_documentation(
+                snapshot,
+                enable_ai=enable_ai
+            )
+
+            progress.update(task, description="[green]Documentation bundle created!")
+
+        # Save bundle
+        bundle_path = await doc_gen.save_bundle(bundle)
+        console.print(f"\n[green]✓ Documentation bundle saved:[/green] {bundle_path}")
+
+        # Generate diagrams
+        console.print("\n[cyan]Generating infrastructure diagrams...[/cyan]")
+        diagram_gen = DiagramGenerator(
+            output_dir=Path(output_dir) / "diagrams" if output_dir else None
+        )
+
+        diagrams = diagram_gen.generate_all_diagrams(snapshot, formats=['svg', 'png'])
+        console.print(f"[green]✓ Generated {len(diagrams)} diagrams[/green]")
+
+        # Add diagrams to bundle
+        bundle.diagrams = diagrams
+
+        # Generate output formats
+        output_formats = list(formats) if formats else config.documentation.formats
+
+        console.print(f"\n[cyan]Generating output formats:[/cyan] {', '.join(output_formats)}")
+
+        output_orchestrator = OutputFormatOrchestrator(
+            output_base_dir=Path(output_dir) if output_dir else Path(config.documentation.output_dir)
+        )
+
+        outputs = await output_orchestrator.generate_all(bundle, output_formats)
+
+        # Display results
+        console.print("\n[bold green]✓ Documentation Generation Complete![/bold green]\n")
+
+        result_table = Table(title="Generated Files")
+        result_table.add_column("Format", style="cyan")
+        result_table.add_column("Location", style="green")
+
+        for fmt, path in outputs.items():
+            result_table.add_row(fmt.upper(), str(path))
+
+        console.print(result_table)
+
+        # Show key files
+        console.print("\n[bold]📁 Key Files:[/bold]")
+
+        if 'html' in outputs:
+            html_path = outputs['html']
+            console.print(f"  • HTML Site: [green]{html_path}/index.html[/green]")
+            console.print(f"  • Emergency Guide: [red]{html_path}/EMERGENCY_START_HERE.html[/red]")
+
+        if 'markdown' in outputs:
+            md_path = outputs['markdown']
+            console.print(f"  • Markdown: [green]{md_path}/README.md[/green]")
+
+        if 'pdf' in outputs:
+            console.print(f"  • PDF: [green]{outputs['pdf']}[/green]")
+
+        if diagrams:
+            console.print(f"  • Diagrams: [green]{diagrams[0].file_path.rsplit('/', 1)[0]}[/green]")
+
+        console.print("\n[bold cyan]🎉 Your homelab documentation is ready![/bold cyan]")
+
+        return bundle
+
+    # Run async generation
+    bundle = asyncio.run(run_generation())
 
 
 @cli.command()
@@ -234,17 +339,117 @@ def validate(ctx):
 @cli.command()
 @click.option('--host', default='0.0.0.0', help='Host to bind to')
 @click.option('--port', default=8000, type=int, help='Port to bind to')
+@click.option('--reload', is_flag=True, help='Enable auto-reload')
 @click.pass_context
-def serve(ctx, host, port):
+def serve(ctx, host, port, reload):
     """Start the web interface."""
+    import uvicorn
+    from .web.app import create_app
+
     console.print("\n[bold cyan]🌐 Starting Web Interface[/bold cyan]\n")
-    console.print(f"[green]Server will start at:[/green] http://{host}:{port}")
-    console.print("\n[yellow]Web interface coming soon![/yellow]")
-    console.print("\nThe web interface will provide:")
+    console.print(f"[green]Server starting at:[/green] http://{host}:{port}")
+    console.print("\n[bold]Features:[/bold]")
     console.print("  • Browse documentation")
-    console.print("  • Trigger scans")
-    console.print("  • View change history")
-    console.print("  • Download exports")
+    console.print("  • Trigger scans via API")
+    console.print("  • View infrastructure status")
+    console.print("  • RESTful API")
+    console.print("\n[cyan]Press Ctrl+C to stop[/cyan]\n")
+
+    # Create and run app
+    app = create_app()
+
+    uvicorn.run(
+        app,
+        host=host,
+        port=port,
+        reload=reload
+    )
+
+
+@cli.command()
+@click.pass_context
+def scheduler(ctx):
+    """Run scheduled scanner service."""
+    from .scheduler import ScheduledScanner
+
+    config = ctx.obj['config']
+
+    console.print("\n[bold cyan]⏰ Scheduled Scanner Service[/bold cyan]\n")
+    console.print(f"[cyan]Schedule:[/cyan] {config.scanning.schedule}")
+    console.print("\n[bold]This will:[/bold]")
+    console.print("  • Run infrastructure scans on schedule")
+    console.print("  • Detect changes automatically")
+    console.print("  • Generate documentation")
+    console.print("  • Send NTFY notifications")
+    console.print("\n[cyan]Press Ctrl+C to stop[/cyan]\n")
+
+    async def run():
+        scheduler_service = ScheduledScanner(config)
+        try:
+            await scheduler_service.run_forever()
+        except KeyboardInterrupt:
+            console.print("\n[yellow]Stopping scheduler...[/yellow]")
+            scheduler_service.stop()
+
+    asyncio.run(run())
+
+
+@cli.command()
+@click.option('--scan-file', '-s', help='Snapshot file to analyze')
+@click.pass_context
+def changes(ctx, scan_file):
+    """Detect changes since last scan."""
+    from .change_detector import ChangeDetector
+
+    console.print("\n[bold cyan]🔄 Change Detection[/bold cyan]\n")
+
+    change_detector = ChangeDetector()
+
+    if scan_file:
+        # Load specified snapshot
+        with open(scan_file, 'r') as f:
+            from .models.infrastructure import InfrastructureSnapshot
+            snapshot_data = json.load(f)
+            current = InfrastructureSnapshot(**snapshot_data)
+    else:
+        # Load latest
+        current = change_detector.load_latest_snapshot()
+
+        if current is None:
+            console.print("[yellow]No snapshots found. Run a scan first.[/yellow]")
+            return
+
+    # Detect changes
+    detected_changes = change_detector.detect_changes(current)
+
+    if not detected_changes:
+        console.print("[green]✓ No changes detected since last scan[/green]")
+        return
+
+    # Show changes
+    console.print(f"[bold]Found {len(detected_changes)} changes:[/bold]\n")
+
+    # Group by severity
+    critical = [c for c in detected_changes if c.severity == "critical"]
+    warnings = [c for c in detected_changes if c.severity == "warning"]
+    info = [c for c in detected_changes if c.severity == "info"]
+
+    if critical:
+        console.print(f"[bold red]🚨 Critical ({len(critical)}):[/bold red]")
+        for change in critical:
+            console.print(f"  • {change.description}")
+        console.print()
+
+    if warnings:
+        console.print(f"[bold yellow]⚠️  Warnings ({len(warnings)}):[/bold yellow]")
+        for change in warnings:
+            console.print(f"  • {change.description}")
+        console.print()
+
+    if info:
+        console.print(f"[bold cyan]ℹ️  Info ({len(info)}):[/bold cyan]")
+        for change in info:
+            console.print(f"  • {change.description}")
 
 
 if __name__ == '__main__':
