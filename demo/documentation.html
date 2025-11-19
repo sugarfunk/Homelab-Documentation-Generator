@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated Documentation - Homelab Docs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f7fafc;
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 280px;
+            background: #1a202c;
+            color: white;
+            padding: 30px 20px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .sidebar h1 {
+            font-size: 1.5em;
+            margin-bottom: 30px;
+            color: #667eea;
+        }
+        .sidebar nav ul {
+            list-style: none;
+        }
+        .sidebar nav li {
+            margin: 8px 0;
+        }
+        .sidebar nav a {
+            color: #a0aec0;
+            text-decoration: none;
+            padding: 8px 12px;
+            display: block;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .sidebar nav a:hover, .sidebar nav a.active {
+            background: #2d3748;
+            color: white;
+        }
+        .sidebar nav a.active {
+            border-left: 3px solid #667eea;
+        }
+        .main-content {
+            margin-left: 280px;
+            padding: 40px;
+            flex: 1;
+        }
+        .doc-header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .doc-header h2 {
+            font-size: 2.5em;
+            color: #1a202c;
+            margin-bottom: 10px;
+        }
+        .doc-header .meta {
+            color: #718096;
+            font-size: 0.95em;
+        }
+        .doc-section {
+            background: white;
+            padding: 30px;
+            margin: 20px 0;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .doc-section h3 {
+            color: #1a202c;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        .server-card {
+            background: #f7fafc;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .server-card h4 {
+            color: #1a202c;
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+        .server-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+        }
+        .info-item .label {
+            color: #718096;
+            font-weight: 600;
+        }
+        .info-item .value {
+            color: #1a202c;
+            font-family: 'Courier New', monospace;
+        }
+        .service-list {
+            margin-top: 20px;
+        }
+        .service-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 3px solid #48bb78;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .service-item .service-name {
+            font-weight: 600;
+            color: #1a202c;
+        }
+        .service-item .service-port {
+            color: #718096;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        .badge.critical {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        .badge.important {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+        .badge.running {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .diagram {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .diagram img {
+            max-width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h1>📚 Documentation</h1>
+        <nav>
+            <ul>
+                <li><a href="#" class="active">Overview</a></li>
+                <li><a href="#">Servers</a></li>
+                <li><a href="#">Services</a></li>
+                <li><a href="#">Network Topology</a></li>
+                <li><a href="#">Docker Containers</a></li>
+                <li><a href="#">Emergency Procedures</a></li>
+                <li><a href="#">Backup Information</a></li>
+                <li><a href="#">Change History</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div class="doc-header">
+            <h2>Homelab Infrastructure Documentation</h2>
+            <div class="meta">
+                Generated: November 19, 2024, 2:15 PM | Last Scan: 15 minutes ago | Auto-updated daily
+            </div>
+        </div>
+
+        <div class="doc-section">
+            <h3>📊 Infrastructure Overview</h3>
+            <div class="server-info">
+                <div class="info-item">
+                    <span class="label">Total Servers</span>
+                    <span class="value">5</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Docker Containers</span>
+                    <span class="value">87</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Active Services</span>
+                    <span class="value">42</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Compose Stacks</span>
+                    <span class="value">15</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="doc-section">
+            <h3>🖥️ Servers</h3>
+
+            <div class="server-card">
+                <h4>workhorse1 <span class="badge critical">CRITICAL</span></h4>
+                <div class="server-info">
+                    <div class="info-item">
+                        <span class="label">IP Address</span>
+                        <span class="value">192.168.1.100</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Tailscale IP</span>
+                        <span class="value">100.100.100.1</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">CPU</span>
+                        <span class="value">Intel i7-12700K</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">RAM</span>
+                        <span class="value">64 GB</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">OS</span>
+                        <span class="value">Ubuntu 22.04 LTS</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Containers</span>
+                        <span class="value">45</span>
+                    </div>
+                </div>
+
+                <div class="service-list">
+                    <h5 style="color: #1a202c; margin-bottom: 10px;">Running Services:</h5>
+                    <div class="service-item">
+                        <div>
+                            <div class="service-name">Traefik (Reverse Proxy)</div>
+                            <div class="service-port">:80, :443</div>
+                        </div>
+                        <span class="badge running">RUNNING</span>
+                    </div>
+                    <div class="service-item">
+                        <div>
+                            <div class="service-name">Home Assistant</div>
+                            <div class="service-port">:8123</div>
+                        </div>
+                        <span class="badge running">RUNNING</span>
+                    </div>
+                    <div class="service-item">
+                        <div>
+                            <div class="service-name">Nextcloud</div>
+                            <div class="service-port">:8080</div>
+                        </div>
+                        <span class="badge running">RUNNING</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="server-card">
+                <h4>workhorse2 <span class="badge important">IMPORTANT</span></h4>
+                <div class="server-info">
+                    <div class="info-item">
+                        <span class="label">IP Address</span>
+                        <span class="value">192.168.1.101</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Tailscale IP</span>
+                        <span class="value">100.100.100.2</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">CPU</span>
+                        <span class="value">AMD Ryzen 5 5600X</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">RAM</span>
+                        <span class="value">32 GB</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">OS</span>
+                        <span class="value">Debian 12</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Containers</span>
+                        <span class="value">28</span>
+                    </div>
+                </div>
+
+                <div class="service-list">
+                    <h5 style="color: #1a202c; margin-bottom: 10px;">Running Services:</h5>
+                    <div class="service-item">
+                        <div>
+                            <div class="service-name">Plex Media Server</div>
+                            <div class="service-port">:32400</div>
+                        </div>
+                        <span class="badge running">RUNNING</span>
+                    </div>
+                    <div class="service-item">
+                        <div>
+                            <div class="service-name">Jellyfin</div>
+                            <div class="service-port">:8096</div>
+                        </div>
+                        <span class="badge running">RUNNING</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="doc-section">
+            <h3>🔧 Quick Reference</h3>
+            <p style="color: #4a5568; line-height: 1.8;">
+                <strong>Emergency Access:</strong> All passwords and credentials are stored in Bitwarden at vault.bitwarden.com<br>
+                <strong>Primary Admin:</strong> Contact admin@example.com<br>
+                <strong>Backup Location:</strong> Synology NAS (/volume1/backups) + Backblaze B2<br>
+                <strong>Last Backup:</strong> 6 hours ago
+            </p>
+        </div>
+    </div>
+</body>
+</html>

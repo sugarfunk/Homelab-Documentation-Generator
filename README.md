@@ -48,6 +48,25 @@ Automatically scans your entire homelab infrastructure and generates comprehensi
 - **Quick Reference Cards**: One-page guides for common tasks
 - **Markdown**: Editable source files
 
+## Screenshots
+
+### Dashboard - Main Control Panel
+The dashboard provides an overview of your entire homelab infrastructure with quick actions and real-time statistics.
+
+![Dashboard](screenshots/01-dashboard.png)
+
+### Infrastructure Scanning
+Live scanning interface showing real-time progress as the system discovers your servers, containers, and services.
+
+![Scanning in Progress](screenshots/02-scanning.png)
+
+### Generated Documentation
+Auto-generated comprehensive documentation with detailed server information, running services, and emergency procedures.
+
+![Generated Documentation](screenshots/03-documentation.png)
+
+> **Note:** Interactive demo HTML pages are available in the `demo/` directory. Open `demo/index.html` in your browser to explore the full UI.
+
 ## Quick Start
 
 ### Prerequisites
